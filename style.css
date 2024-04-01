@@ -1,0 +1,53 @@
+/*
+ * Copyright (C) 2024 Mats Wahlberg
+ *
+ * This file is part of The Shattered.
+ *
+ * The Shattered is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * The Shattered is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with The Shattered. If
+ * not, see <https://www.gnu.org/licenses/>. 
+ */
+
+
+#canvas {
+	width:100%;
+	height:100%;
+}
+
+#container-div {
+	display: flex;
+	flex-flow: column;
+	height: 100%;
+}
+#top-div {
+}
+#bottom-div {
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 5px;
+
+	border: 2px solid black;
+	border-radius:5px;
+	flex-grow: 1;
+}
+
+#background {
+	display: none;
+}
+
+#blocks {
+	display: none;
+}
+
+html, body {
+	height:100%;
+	margin:0;
+	text-align: center;
+}
