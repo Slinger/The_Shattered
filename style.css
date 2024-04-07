@@ -50,4 +50,11 @@ html, body {
 	height:100%;
 	margin:0;
 	text-align: center;
+	//background: #361564;
+	//background: #6a2798;
+	background: #7030a0;
+}
+
+a {
+	color: #0000c0;;
 }

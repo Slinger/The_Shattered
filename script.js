@@ -276,7 +276,9 @@ class Field {
 		//canvas.width=window.innerWidth;
 		//this.block_width=canvas.width/field_width;
 		//this.block_height=canvas.height/field_height;
-		context.clearRect(0,0,canvas.width,canvas.height)
+		//context.clearRect(0,0,canvas.width,canvas.height)
+		context.fillStyle="#ffffff"
+		context.fillRect(0,0,canvas.width,canvas.height)
 		context.drawImage(background, 0, canvas.height-canvas.width, canvas.width, canvas.width);
 	}
 	draw() {
