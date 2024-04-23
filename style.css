@@ -56,5 +56,9 @@ html, body {
 }
 
 a {
-	color: #0000c0;;
+	color: #0000c0;
+}
+
+p, h1, h2, h3, h4 {
+	color: #000000;
 }
