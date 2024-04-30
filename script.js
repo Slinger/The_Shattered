@@ -30,13 +30,27 @@ function unlikely() {
 	return (rand_int(10) == 0)
 }
 
+//volume levels
 const MUSIC_NORMAL=0.5;
 const MUSIC_QUIET=0.2;
+//list of music tracks
 const MUSIC_TRACKS=[
-'music/Jonathan Holmes, Various Artists - Talking to Women about Videogames- The A - 10 It\'s not another ordinary day- Matt Harwood (Bit.Trip, Alien Hominid).mp3',
-'music/Jonathan Holmes, Various Artists - Talking to Women about Videogames- The A - 35 Sup Holmes Chiptune magic- LOL Shin Chan.mp3',
-'music/Jonathan Holmes, Various Artists - Talking to Women about Videogames- The A - 36 TtWaV NES Tribute- Mike Pugliese.mp3',
-'music/Freak Out.mp3']
+	'music/Jonathan Holmes, Various Artists - Talking to Women about Videogames- The A - 10 It\'s not another ordinary day- Matt Harwood (Bit.Trip, Alien Hominid).mp3',
+	'music/Jonathan Holmes, Various Artists - Talking to Women about Videogames- The A - 35 Sup Holmes Chiptune magic- LOL Shin Chan.mp3',
+	'music/Jonathan Holmes, Various Artists - Talking to Women about Videogames- The A - 36 TtWaV NES Tribute- Mike Pugliese.mp3',
+	'music/Freak Out.mp3'];
+
+//each element represents a set of suggestion clips, of these many clips
+const SUGGESTIONS=[13];
+
+//number of (rare) intro clips
+const NUM_EXTRA=1;
+//number of (rare) random banter during gameplay
+const NUM_IDLERANDOM=3;
+//number of game-over clips
+const NUM_GAMEOVER=1;
+//number of victory clips
+const NUM_VICTORY=3;
 
 class DJ {
 	//TODO: audio from the start doesn't sound on modern browsers?
@@ -77,17 +91,22 @@ class DJ {
 		//override any banter... pause music (or decrease volume)...
 		if (this.fuel > 0) {
 			this.fuel--;
-			//TODO: also if part exceeds max, choose new suggestion
 			if (this.suggestion == -1) {
-				this.suggestion=rand_int(1)+1;
+				this.suggestion=rand_int(SUGGESTIONS.length)+1;
 				this.suggestion_part=1;
 			}
 			else
 				this.suggestion_part++;
 
-			this.suggestion_playing=true;
-			this.play('audio/suggestion_'+this.suggestion+'/'+this.suggestion_part+'.mp3')
-			//this.music.volume=MUSIC_QUIET;
+			if (this.suggestion_part>SUGGESTIONS[this.suggestion-1]) {
+				dj.event_win();
+				game_state=state_won;
+			}
+			else {
+				this.suggestion_playing=true;
+				this.play('audio/suggestion_'+this.suggestion+'/'+this.suggestion_part+'.mp3')
+				//this.music.volume=MUSIC_QUIET;
+			}
 		}
 		else {
 			console.log("return")
@@ -101,11 +120,16 @@ class DJ {
 
 		//sometimes play an extra clip at start
 		if (unlikely())
-			this.play('audio/extra_'+(rand_int(3)+1)+'.mp3')
+			this.play('audio/extra_'+(rand_int(NUM_EXTRA)+1)+'.mp3')
 	}
 
 	event_fail() {
-		this.play('audio/gameover_1.mp3');
+		this.play('audio/gameover_'+(rand_int(NUM_GAMEOVER)+1)+'.mp3')
+		this.music_stop();
+	}
+
+	event_win() {
+		this.play('audio/victory_'+(rand_int(NUM_VICTORY)+1)+'.mp3');
 		this.music_stop();
 	}
 
@@ -144,7 +168,7 @@ class DJ {
 				this.play('audio/idlecolor_2.mp3');
 			}
 			else {
-				this.play('audio/idlerandom_'+(rand_int(3)+1)+'.mp3')
+				this.play('audio/idlerandom_'+(rand_int(NUM_IDLERANDOM)+1)+'.mp3')
 			}
 		}
 	}
@@ -217,6 +241,7 @@ context.fillText("Loading...", 100, 100);
 const state_intro=0;
 const state_playing=1;
 const state_failed=2;
+const state_won=3;
 let game_state=state_intro;
 
 
@@ -678,7 +703,7 @@ window.addEventListener("keydown", (event) => {
 		}
 	}
 	else if (event.key==" ") {
-		if (game_state==state_failed) {
+		if (game_state==state_failed || game_state==state_won) {
 			delete field;
 			field = new Field;
 			tmp = new FallingBlock(field);
@@ -736,6 +761,10 @@ function loop(time) {
 			break;
 		case state_failed:
 			field.draw_message("Game Over!", "Press space to retry")
+			break;
+		case state_won:
+			field.draw_message("You Won!", "Press space to play again")
+			field.step(delta);
 			break;
 	}
 
