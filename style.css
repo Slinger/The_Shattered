@@ -55,10 +55,14 @@ html, body {
 	background: #7030a0;
 }
 
-a {
-	color: #0000c0;
+a, p, h1, h2, h3, h4 {
+	color: #ffffff;
 }
 
-p, h1, h2, h3, h4 {
-	color: #000000;
+h1, h2, h3, h4 {
+	text-shadow:
+		-2px -2px 0 #000,
+		2px -2px 0 #000,
+		-2px 2px 0 #000,
+		2px 2px 0 #000;
 }
