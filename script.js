@@ -242,6 +242,7 @@ const state_intro=0;
 const state_playing=1;
 const state_failed=2;
 const state_won=3;
+const state_paused=4;
 let game_state=state_intro;
 
 
@@ -700,6 +701,14 @@ window.addEventListener("keydown", (event) => {
 			case " ":
 				field.target_next();
 				break;
+			case "Escape":
+				game_state=state_paused;
+				break;
+		}
+	}
+	else if (game_state==state_paused) {
+		if (event.key== "Escape") {
+			game_state=state_playing;
 		}
 	}
 	else if (event.key==" ") {
@@ -763,8 +772,11 @@ function loop(time) {
 			field.draw_message("Game Over!", "Press space to retry")
 			break;
 		case state_won:
+			field.step(delta); //still move remaining blocks
 			field.draw_message("You Won!", "Press space to play again")
-			field.step(delta);
+			break;
+		case state_paused:
+			field.draw_message("Paused.", "Press ESC to resume")
 			break;
 	}
 
