@@ -244,6 +244,7 @@ class Field {
 		console.log("w x: " +canvas.height +" style w: "+ canvas.style.height);
 
 		this.blocks = Array(field_height).fill().map(() => Array(field_width).fill(-1));
+		this.blocks_offset = Array(field_height).fill().map(() => Array(field_width).fill(0.5));
 		//this.add_block(9, 0, 0);
 		//this.add_block(9, 2, 0);
 		//this.add_block(9, 4, 0);
@@ -285,10 +286,10 @@ class Field {
 		for (let i=0; i<field_height; ++i) {
 			for (let j=0; j<field_width; ++j) {
 				if (this.blocks[i][j]!=-1) {
-					this.draw_block(i,j,this.blocks[i][j]);
+					this.draw_block(i-this.blocks_offset[i][j],j,this.blocks[i][j]);
 
 					if (this.blocks[i][j]==this.target)
-						this.draw_block(i,j,4);
+						this.draw_block(i-this.blocks_offset[i][j],j,4);
 				}
 			}
 		}
@@ -323,6 +324,18 @@ class Field {
 				this.timer=0;
 			}
 		}
+
+		//(animate) blocks falling down after clearing
+		for (let i=0; i<field_height; ++i) {
+			for (let j=0; j<field_width; ++j) {
+				if (this.blocks_offset[i][j]>0) {
+					this.blocks_offset[i][j]-=delta*speed_fast;
+					if (this.blocks_offset[i][j]<0)
+						this.blocks_offset[i][j]=0
+
+				}
+			}
+		}
 	}
 	draw_block(row,col,type) {
 		context.drawImage(blocks, type*64, 0, 64, 64, col*this.block_width, row*this.block_height, this.block_width, this.block_height);
@@ -334,8 +347,14 @@ class Field {
 				dj.event_fail();
 			}
 		}
-		else
+		else {
 			this.blocks[row][col]=type;
+			this.blocks_offset[row][col]=0;
+		}
+	}
+	drop_block(old_row, new_row, col) {
+		this.blocks[new_row][col]=this.blocks[old_row][col];
+		this.blocks_offset[new_row][col]=this.blocks_offset[old_row][col]-(old_row-new_row);
 	}
 	remove_target() {
 		for (let col=0; col<field_width; ++col) {
@@ -354,7 +373,7 @@ class Field {
 				if (this.blocks[seek][col]==this.target){
 				}
 				else {
-					this.blocks[row][col]=this.blocks[seek][col]
+					this.drop_block(seek,row,col)
 					row--;
 				}
 			}
@@ -396,7 +415,7 @@ class Field {
 			}
 			else {
 				for (let col=0; col<field_width; ++col) {
-					this.blocks[row][col]=this.blocks[seek][col]
+					this.drop_block(seek,row,col)
 				}
 				row--
 			}
