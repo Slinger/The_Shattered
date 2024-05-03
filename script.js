@@ -46,7 +46,7 @@ const SUGGESTIONS=[13];
 //number of (rare) intro clips
 const NUM_EXTRA=1;
 //number of (rare) random banter during gameplay
-const NUM_IDLERANDOM=3;
+const NUM_IDLERANDOM=4;
 //number of game-over clips
 const NUM_GAMEOVER=1;
 //number of victory clips
