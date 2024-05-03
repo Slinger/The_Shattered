@@ -497,7 +497,7 @@ field = new Field;
 
 const speed_slow=0.001;
 const speed_fast=0.01;
-class FallingBlock {
+class Johnnymino {
 	constructor(field) {
 		this.field=field;
 		this.speed=speed_slow;
@@ -667,7 +667,7 @@ l.speak();
 
 
 //TODO: move into field
-let tmp=false;
+let johnny=false;
 
 
 window.addEventListener("keydown", (event) => {
@@ -675,16 +675,16 @@ window.addEventListener("keydown", (event) => {
 		//console.log(event.key);
 		switch (event.key) {
 			case "ArrowUp":
-				tmp.rotate();
+				johnny.rotate();
 				break;
 			case "ArrowRight":
-				tmp.right();
+				johnny.right();
 				break;
 			case "ArrowLeft":
-				tmp.left();
+				johnny.left();
 				break;
 			case "ArrowDown":
-				tmp.faster();
+				johnny.faster();
 				break;
 			case "w":
 				field.target_type(3);
@@ -715,11 +715,11 @@ window.addEventListener("keydown", (event) => {
 		if (game_state==state_failed || game_state==state_won) {
 			delete field;
 			field = new Field;
-			tmp = new FallingBlock(field);
+			johnny = new Johnnymino(field);
 			dj.event_retry()
 		}
 		else {
-			tmp=new FallingBlock(field);
+			johnny=new Johnnymino(field);
 			dj.event_start()
 		}
 
@@ -730,7 +730,7 @@ window.addEventListener("keyup", (event) => {
 		//console.log(ev.key);
 		switch (event.key) {
 			case "ArrowDown":
-				tmp.slower();
+				johnny.slower();
 				break;
 		}
 	});
@@ -748,8 +748,8 @@ function loop(time) {
 	field.draw();
 
 	//TODO: should be moved into field...
-	if (tmp)
-		tmp.draw();
+	if (johnny)
+		johnny.draw();
 
 	switch (game_state) {
 		case state_intro:
@@ -759,11 +759,11 @@ function loop(time) {
 
 			field.step(delta);
 
-			if (tmp.step(delta)) {
-				//istället direkt i tmp.step()?
+			if (johnny.step(delta)) {
+				//istället direkt i johnny.step()?
 				//+field.add(shape...)
-				delete tmp;
-				tmp=new FallingBlock(field);
+				delete johnny;
+				johnny=new Johnnymino(field);
 				field.remove_lines();
 				//dj.event_retry();
 			}
