@@ -143,7 +143,7 @@ class DJ {
 
 		//normally "Jonathan will ride again", sometimes something else (like when starting)
 		if (unlikely())
-			this.play('audio/extra_'+(rand_int(3)+1)+'.mp3')
+			this.play('audio/extra_'+(rand_int(NUM_EXTRA)+1)+'.mp3')
 		else
 			this.play('audio/retry_1.mp3');
 		this.music_start();
@@ -158,13 +158,10 @@ class DJ {
 
 		//if nothing going on... how about some random banter?
 		if (unlikely()) { //occasional banter
-			if (color==3) {
-				//if (rand_int(2) == 1)
-					this.play('audio/idlecolor_1.mp3');
-				//else
-					//this.play('audio/idlecolor_2.mp3');
+			if (color==3 && (rand_int(2)==0)) {
+				this.play('audio/idlecolor_1.mp3');
 			}
-			else if (color==2) {
+			else if (color==2 && (rand_int(2)==0)) {
 				this.play('audio/idlecolor_2.mp3');
 			}
 			else {
@@ -495,6 +492,16 @@ class Field {
 field = new Field;
 
 
+
+class BombBag {
+	constructor() {
+		this.bombs=0;
+	}
+
+	add () {
+	}
+}
+
 const speed_slow=0.001;
 const speed_fast=0.01;
 class Johnnymino {
@@ -535,6 +542,7 @@ class Johnnymino {
 
 		this.col=rand_int(field_width-this.size);
 		this.row=-this.size;
+		this.progress=0;
 
 		let numrot=rand_int(4);
 		//console.log(numrot);
@@ -584,7 +592,12 @@ class Johnnymino {
 		this.speed=speed_slow;
 	}
 	step(delta) {
-		this.row+=delta*this.speed;
+		this.progress+=delta*this.speed;
+		if (this.progress > 1) {
+			this.progress-=1;
+			this.row+=1;
+		}
+		//this.row+=delta*this.speed;
 		//console.log("step x: " +this.row +"try y: "+ this.col);
 		//TODO: discrete
 		if (!this.try_change(this.row,this.col, this.shape)) {
@@ -598,10 +611,31 @@ class Johnnymino {
 	}
 
 	draw() {
+		const BASE=0.3;
+		const PIVOT=0.2;
+
+		const BASE_INV=1-BASE;
+		const PIVOT_INV=1-PIVOT;
+		let x=this.progress;
+		let row;
+
+		//ALT1:
+		//row=this.row+(2*x-x*x);
+		//ALT2:
+		if (x<=PIVOT) {
+			row=this.row + x*BASE + BASE_INV*x*x/PIVOT;
+		}
+		else {
+			let x_inv=1-x;
+			row=this.row + x*BASE + BASE_INV*(1-x_inv*x_inv/PIVOT_INV);
+		}
+		/*
+		*/
+
 		for (let i=0; i<this.size; ++i) {
 			for (let j=0; j<this.size; ++j) {
 				if (this.shape[i][j])
-					this.field.draw_block(this.row+i,this.col+j,this.color);
+					this.field.draw_block(row+i,this.col+j,this.color);
 			}
 		}
 	}
@@ -612,7 +646,7 @@ class Johnnymino {
 		for (let i=0; i<this.size; ++i) {
 			for (let j=0; j<this.size; ++j) {
 				if (this.shape[i][j]) {
-					this.field.add_block(Math.floor(this.row+i), this.col+j, this.color)
+					this.field.add_block(this.row+i, this.col+j, this.color)
 				}
 			}
 		}
@@ -624,7 +658,7 @@ class Johnnymino {
 		for (let i=0; i<this.size; ++i) {
 			for (let j=0; j<this.size; ++j) {
 				//console.log("loop i: "+i+" x: "+x);
-				if (shape[i][j] && this.field.is_colliding(Math.ceil(row+i), col+j))
+				if (shape[i][j] && this.field.is_colliding(row+i+1, col+j))
 					return false;
 			}
 		}
