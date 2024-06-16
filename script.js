@@ -336,11 +336,12 @@ class Field {
 		return false;
 	}
 	step(delta) {
+		let check_removed=0;
+
 		if (this.target != -1) {
 			this.timer-=delta;
 			if (this.timer<=0) {
 				this.remove_target();
-				this.remove_lines();
 				this.target=-1;
 				this.timer=0;
 			}
@@ -351,12 +352,17 @@ class Field {
 			for (let j=0; j<field_width; ++j) {
 				if (this.blocks_offset[i][j]>0) {
 					this.blocks_offset[i][j]-=delta*speed_fast;
-					if (this.blocks_offset[i][j]<0)
-						this.blocks_offset[i][j]=0
+					if (this.blocks_offset[i][j]<0) {
+						this.blocks_offset[i][j]=0;
+						check_removed=1;
+					}
 
 				}
 			}
 		}
+
+		if (check_removed)
+			this.remove_lines();
 	}
 	draw_block(row,col,type) {
 		context.drawImage(blocks, type*64, 0, 64, 64, col*this.block_width, row*this.block_height, this.block_width, this.block_height);
@@ -404,7 +410,9 @@ class Field {
 	check_line(row) {
 		let col=0;
 		for (; col<field_width; ++col) {
-			if (this.blocks[row][col]==-1)
+			//abort if find empty block or block still falling
+			if (	this.blocks[row][col]==-1 ||
+				this.blocks_offset[row][col]!=0)
 				break;
 		}
 		return col==field_width
