@@ -268,9 +268,7 @@ class Field {
 
 		this.blocks = Array(field_height).fill().map(() => Array(field_width).fill(-1));
 		this.blocks_offset = Array(field_height).fill().map(() => Array(field_width).fill(0.5));
-		//this.add_block(9, 0, 0);
-		//this.add_block(9, 2, 0);
-		//this.add_block(9, 4, 0);
+
 
 		this.target=-1;
 		this.timer=0;
@@ -381,18 +379,16 @@ class Field {
 	}
 	remove_target() {
 		for (let col=0; col<field_width; ++col) {
-			let row=field_height-1
-			let seek=0;
-			for (; row>0; --row) {
-				console.log("> row " ,row, " and col" ,col);
+			let row=field_height-1;
+			let seek=-1;
+			for (; row>=0; --row) {
 				if (this.blocks[row][col]==this.target) {
-					console.log("> match");
 					this.blocks[row][col]=-1;
 					seek=row-1;
 					break;
 				}
 			}
-			for (; seek>0; --seek) {
+			for (; seek>=0; --seek) {
 				if (this.blocks[seek][col]==this.target){
 				}
 				else {
@@ -400,7 +396,7 @@ class Field {
 					row--;
 				}
 			}
-			for (; row>0; --row) {
+			for (; row>=0; --row) {
 				this.blocks[row][col]=-1
 			}
 		}
@@ -420,10 +416,9 @@ class Field {
 			*/
 	}
 	remove_lines() {
-		//TODO!!!
 		let row=field_height-1
-		let seek=0;
-		for (; row>0; --row) {
+		let seek=-1;
+		for (; row>=0; --row) {
 			if (this.check_line(row)) {
 				console.log("> match row");
 				dj.event_score()
@@ -432,7 +427,7 @@ class Field {
 			}
 		}
 
-		for (;seek>0; --seek) {
+		for (;seek>=0; --seek) {
 			if (this.check_line(seek)) {
 				dj.event_score()
 			}
@@ -444,32 +439,11 @@ class Field {
 			}
 		}
 
-		for (; row>0; --row) {
+		for (; row>=0; --row) {
 			for (let col=0; col<field_width; ++col) {
 				this.blocks[row][col]=-1
 			}
 		}
-		/*
-			console.log("> row " ,row, " and col" ,col);
-			if (this.blocks[row][col]==this.target) {
-				console.log("> match");
-				this.blocks[row][col]=-1;
-				seek=row-1;
-				break;
-			}
-		}
-		for (; seek>0; --seek) {
-			if (this.blocks[seek][col]==this.target){
-			}
-			else {
-				this.blocks[row][col]=this.blocks[seek][col]
-				row--;
-			}
-		}
-		for (; row>0; --row) {
-			this.blocks[row][col]=-1
-		}
-		*/
 	}
 	draw_message(title,subtitle) {
 		context.fillStyle="rgba(0,255,255,0.4)";
