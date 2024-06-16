@@ -458,7 +458,8 @@ class BombBag {
 			next: this.bombs
 		}
 		*/
-		this.bomb_count++;
+		if (this.bomb_count < max_bombs)
+			this.bomb_count++;
 	}
 	target_type(type) {
 		if (this.bomb_count>0) {
