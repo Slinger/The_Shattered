@@ -252,6 +252,7 @@ const blocks=document.getElementById("blocks");
 const field_width =6;
 const field_height =13;
 const detonate_timer=1000;
+const acceleration=0.00002;
 
 class Field {
 	constructor() {
@@ -267,7 +268,8 @@ class Field {
 		console.log("w x: " +canvas.height +" style w: "+ canvas.style.height);
 
 		this.blocks = Array(field_height).fill().map(() => Array(field_width).fill(-1));
-		this.blocks_offset = Array(field_height).fill().map(() => Array(field_width).fill(0.5));
+		this.blocks_offset = Array(field_height).fill().map(() => Array(field_width).fill(0));
+		this.blocks_speed = Array(field_height).fill().map(() => Array(field_width).fill(0));
 
 
 		this.target=-1;
@@ -351,9 +353,11 @@ class Field {
 		for (let i=0; i<field_height; ++i) {
 			for (let j=0; j<field_width; ++j) {
 				if (this.blocks_offset[i][j]>0) {
-					this.blocks_offset[i][j]-=delta*speed_fast;
+					this.blocks_speed[i][j]+=delta*acceleration;
+					this.blocks_offset[i][j]-=delta*this.blocks_speed[i][j];
 					if (this.blocks_offset[i][j]<0) {
 						this.blocks_offset[i][j]=0;
+						this.blocks_speed[i][j]=0;
 						check_removed=1;
 					}
 
@@ -377,11 +381,13 @@ class Field {
 		else {
 			this.blocks[row][col]=type;
 			this.blocks_offset[row][col]=0;
+			this.blocks_speed[row][col]=0;
 		}
 	}
 	drop_block(old_row, new_row, col) {
 		this.blocks[new_row][col]=this.blocks[old_row][col];
 		this.blocks_offset[new_row][col]=this.blocks_offset[old_row][col]-(old_row-new_row);
+		this.blocks_speed[new_row][col]=this.blocks_speed[old_row][col];
 	}
 	remove_target() {
 		for (let col=0; col<field_width; ++col) {
