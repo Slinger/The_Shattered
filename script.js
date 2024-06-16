@@ -27,7 +27,7 @@ function rand_pick(array) {
 }
 
 function unlikely() {
-	return (rand_int(10) == 0)
+	return (rand_int(6) == 0)
 }
 
 //volume levels
