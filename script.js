@@ -251,21 +251,12 @@ const blocks=document.getElementById("blocks");
 //6x13, with space above
 const field_width =6;
 const field_height =13;
-const detonate_timer=1000;
 const acceleration=0.00002;
 
 class Field {
 	constructor() {
 		this.resize()
 		this.clear()
-		this.width=canvas.width;
-		this.height=canvas.height;
-		//canvas.height=window.innerHeight;
-		//canvas.width=window.innerWidth;
-		//this.block_width=canvas.width/field_width;
-		//this.block_height=canvas.height/field_height;
-		//canvas.height=canvas.style.height
-		console.log("w x: " +canvas.height +" style w: "+ canvas.style.height);
 
 		this.blocks = Array(field_height).fill().map(() => Array(field_width).fill(-1));
 		this.blocks_offset = Array(field_height).fill().map(() => Array(field_width).fill(0));
@@ -273,34 +264,15 @@ class Field {
 
 
 		this.target=-1;
-		this.timer=0;
-	}
-	target_type(type) {
-		this.target=type;
-		this.timer=detonate_timer;
-	}
-	target_next() {
-		this.target=(this.target+1)%4;
-		this.timer=detonate_timer;
 	}
 	resize() {
-		canvas.height=this.width=div.clientHeight//*0.95;
-		//canvas.width=this.width=div.clientWidth;
+		canvas.height=div.clientHeight;
 		canvas.width=canvas.height*field_width/field_height;
 
-		//canvas.height=window.innerHeight;
-		//canvas.width=window.innerWidth;
 		this.block_width=canvas.width/field_width;
 		this.block_height=canvas.height/field_height;
-		//context.clearRect(0,0,canvas.width,canvas.height)
-		//context.drawImage(background, 0, canvas.height-canvas.width, canvas.width, canvas.width);
 	}
 	clear() {
-		//canvas.height=window.innerHeight;
-		//canvas.width=window.innerWidth;
-		//this.block_width=canvas.width/field_width;
-		//this.block_height=canvas.height/field_height;
-		//context.clearRect(0,0,canvas.width,canvas.height)
 		context.fillStyle="#ffffff"
 		context.fillRect(0,0,canvas.width,canvas.height)
 		context.drawImage(background, 0, canvas.height-canvas.width, canvas.width, canvas.width);
@@ -317,14 +289,8 @@ class Field {
 			}
 		}
 
-		if (this.timer > 0) {
-			context.fillStyle="red";
-			context.fillRect(0, this.block_height*(field_height-1+1.5/4), this.block_width*field_width*this.timer/detonate_timer, this.block_height/4);
-		}
 	}
 	is_colliding(row,col){
-		//console.log("try x: " +row +"try y: "+ col);
-		//console.log("row: " +row +" col: "+ col);
 		if (col<0 || col>=field_width)
 			return true;
 		if (row>=field_height)
@@ -338,16 +304,7 @@ class Field {
 		return false;
 	}
 	step(delta) {
-		let check_removed=0;
-
-		if (this.target != -1) {
-			this.timer-=delta;
-			if (this.timer<=0) {
-				this.remove_target();
-				this.target=-1;
-				this.timer=0;
-			}
-		}
+		let check_removed=false;
 
 		//(animate) blocks falling down after clearing
 		for (let i=0; i<field_height; ++i) {
@@ -358,7 +315,7 @@ class Field {
 					if (this.blocks_offset[i][j]<0) {
 						this.blocks_offset[i][j]=0;
 						this.blocks_speed[i][j]=0;
-						check_removed=1;
+						check_removed=true;
 					}
 
 				}
@@ -390,11 +347,13 @@ class Field {
 		this.blocks_speed[new_row][col]=this.blocks_speed[old_row][col];
 	}
 	remove_target() {
+		let detonated_any=false;
 		for (let col=0; col<field_width; ++col) {
 			let row=field_height-1;
 			let seek=-1;
 			for (; row>=0; --row) {
 				if (this.blocks[row][col]==this.target) {
+					detonated_any=true;
 					this.blocks[row][col]=-1;
 					seek=row-1;
 					break;
@@ -412,6 +371,8 @@ class Field {
 				this.blocks[row][col]=-1
 			}
 		}
+
+		return detonated_any;
 	}
 	check_line(row) {
 		let col=0;
@@ -422,12 +383,6 @@ class Field {
 				break;
 		}
 		return col==field_width
-		/*
-		if (col==field_width)
-			return 1
-		else
-			return 0
-			*/
 	}
 	remove_lines() {
 		let row=field_height-1
@@ -436,6 +391,7 @@ class Field {
 			if (this.check_line(row)) {
 				console.log("> match row");
 				dj.event_score()
+				bombbag.add();
 				seek=row-1;
 				break;
 			}
@@ -444,6 +400,7 @@ class Field {
 		for (;seek>=0; --seek) {
 			if (this.check_line(seek)) {
 				dj.event_score()
+				bombbag.add();
 			}
 			else {
 				for (let col=0; col<field_width; ++col) {
@@ -481,14 +438,89 @@ field = new Field;
 
 
 
+const detonate_timer=1000;
+const max_bombs=6;
+
 class BombBag {
-	constructor() {
-		this.bombs=0;
+	constructor(field) {
+		this.timer=0;
+		this.field=field;
+		//this.bombs=null;
+		this.bomb_count=0;
+		//this.boms[max_bombs]; //Array?
 	}
 
 	add () {
+		/*
+		this.bombs={
+			animation: 0,
+			primed: false,
+			next: this.bombs
+		}
+		*/
+		this.bomb_count++;
+	}
+	target_type(type) {
+		if (this.bomb_count>0) {
+			this.field.target=type;
+			this.timer=detonate_timer;
+		}
+	}
+	target_next() {
+		if (this.bomb_count>0) {
+			this.field.target=(field.target+1)%4;
+			this.timer=detonate_timer;
+		}
+	}
+	step(delta) {
+		if (this.timer>0) {
+			this.timer-=delta;
+			if (this.timer<=0) {
+				if (this.field.remove_target()) {
+					this.field.remove_lines();
+					this.bomb_count--;
+				}
+				else {
+				}
+
+				this.field.target=-1;
+				this.timer=0;
+
+				//this.bombs=this.bombs.next;
+			}
+		}
+
+	}
+	draw_bomb(row,col) {
+		context.drawImage(blocks, 5*64, 0, 64, 64, col*this.field.block_width/2, row*this.field.block_height/2, this.field.block_width/2, this.field.block_height/2);
+	}
+	draw() {
+		/*
+		let iter=this.bombs;
+		let x=0;
+
+		while (iter != null) {
+			this.field.draw_block(1,x,5);
+
+			x++;
+			iter=iter.next;
+		}
+		*/
+		let i;
+		for (i=0; i<this.bomb_count; ++i) {
+			this.draw_bomb(field_height*2-2,i,5);
+		}
+
+		if (this.timer > 0) {
+			console.log("yes")
+			context.fillStyle="red";
+			context.fillRect(0, this.field.block_height*(field_height-1+1.5/4), this.field.block_width*field_width*this.timer/detonate_timer, this.field.block_height/4);
+		}
+
 	}
 }
+
+bombbag = new BombBag(field);
 
 const speed_slow=0.001;
 const speed_fast=0.01;
@@ -660,32 +692,6 @@ class Johnnymino {
 
 
 
-//TMP: for Fluffy
-class Cat {
-  constructor(name) {
-    this.name = name;
-	this.foobar=1337;
-  }
-
-  speak() {
-    console.log(`${this.name} makes a noise.`);
-    console.log(`${this.foobar}`);
-  }
-}
-
-class Lion extends Cat {
-  speak() {
-    super.speak();
-	  this.foobar=1;
-    super.speak();
-    console.log(`${this.name} roars.`);
-  }
-}
-
-const l = new Lion("Fuzzy");
-l.speak();
-//end TMP
-
 
 
 //TODO: move into field
@@ -709,19 +715,19 @@ window.addEventListener("keydown", (event) => {
 				johnny.faster();
 				break;
 			case "w":
-				field.target_type(3);
+				bombbag.target_type(3);
 				break;
 			case "a":
-				field.target_type(0);
+				bombbag.target_type(0);
 				break;
 			case "s":
-				field.target_type(1);
+				bombbag.target_type(1);
 				break;
 			case "d":
-				field.target_type(2);
+				bombbag.target_type(2);
 				break;
 			case " ":
-				field.target_next();
+				bombbag.target_next();
 				break;
 			case "Escape":
 				game_state=state_paused;
@@ -737,6 +743,7 @@ window.addEventListener("keydown", (event) => {
 		if (game_state==state_failed || game_state==state_won) {
 			delete field;
 			field = new Field;
+			bombbag = new BombBag(field);
 			johnny = new Johnnymino(field);
 			dj.event_retry()
 		}
@@ -768,6 +775,7 @@ function loop(time) {
 	field.resize();
 	field.clear();
 	field.draw();
+	bombbag.draw();
 
 	//TODO: should be moved into field...
 	if (johnny)
@@ -780,7 +788,9 @@ function loop(time) {
 		case state_playing:
 
 			field.step(delta);
+			bombbag.step(delta);
 
+			//returns true if landed (spawn another)
 			if (johnny.step(delta)) {
 				//istället direkt i johnny.step()?
 				//+field.add(shape...)
