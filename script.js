@@ -253,6 +253,8 @@ const field_width =6;
 const field_height =13;
 const acceleration=0.00002;
 
+const explosion_duration=300;
+
 class Field {
 	constructor() {
 		this.resize()
@@ -262,6 +264,7 @@ class Field {
 		this.blocks_offset = Array(field_height).fill().map(() => Array(field_width).fill(0));
 		this.blocks_speed = Array(field_height).fill().map(() => Array(field_width).fill(0));
 
+		this.explosions = Array(field_height).fill().map(() => Array(field_width).fill(0));
 
 		this.target=-1;
 	}
@@ -285,6 +288,12 @@ class Field {
 
 					if (this.blocks[i][j]==this.target)
 						this.draw_block(i-this.blocks_offset[i][j],j,4);
+				}
+
+				let expl=this.explosions[i][j];
+				let expl_inv=1-expl;
+				if (expl>0) {
+					this.draw_explosion(i,j, 1.3*(1-expl*expl*expl), 1-expl_inv*expl_inv*expl_inv);
 				}
 			}
 		}
@@ -319,6 +328,10 @@ class Field {
 					}
 
 				}
+
+				if (this.explosions[i][j]>0) {
+					this.explosions[i][j]-=delta/explosion_duration;
+				}
 			}
 		}
 
@@ -327,6 +340,13 @@ class Field {
 	}
 	draw_block(row,col,type) {
 		context.drawImage(blocks, type*64, 0, 64, 64, col*this.block_width, row*this.block_height, this.block_width, this.block_height);
+	}
+	draw_explosion(row,col,size,alpha) {
+		let col_offs=this.block_width*(size-1)/2;
+		let row_offs=this.block_height*(size-1)/2;
+		context.globalAlpha=alpha;
+		context.drawImage(blocks, 6*64, 0, 64, 64, col*this.block_width-col_offs, row*this.block_height-row_offs, this.block_width*size, this.block_height*size);
+		context.globalAlpha=1.0;
 	}
 	add_block(row,col,type) {
 		if (row < 0) {
@@ -355,12 +375,14 @@ class Field {
 				if (this.blocks[row][col]==this.target) {
 					detonated_any=true;
 					this.blocks[row][col]=-1;
+					this.explosions[row][col]=1;
 					seek=row-1;
 					break;
 				}
 			}
 			for (; seek>=0; --seek) {
 				if (this.blocks[seek][col]==this.target){
+					this.explosions[seek][col]=1;
 				}
 				else {
 					this.drop_block(seek,row,col)
@@ -384,14 +406,20 @@ class Field {
 		}
 		return col==field_width
 	}
+	explode_row(row) {
+		let col=0;
+		for (; col<field_width; ++col) {
+			this.explosions[row][col]=1;
+		}
+	}
 	remove_lines() {
 		let row=field_height-1
 		let seek=-1;
 		for (; row>=0; --row) {
 			if (this.check_line(row)) {
-				console.log("> match row");
 				dj.event_score()
 				bombbag.add();
+				this.explode_row(row);
 				seek=row-1;
 				break;
 			}
@@ -401,6 +429,7 @@ class Field {
 			if (this.check_line(seek)) {
 				dj.event_score()
 				bombbag.add();
+				this.explode_row(row);
 			}
 			else {
 				for (let col=0; col<field_width; ++col) {
