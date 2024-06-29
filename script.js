@@ -621,6 +621,15 @@ class Johnnymino {
 
 			if (this.try_change(this.row,this.col,newshape))
 				this.shape=newshape;
+			//in case 'U'-shaped and can be rotated IF nudging it a bit to the side:
+			else if (this.try_change(this.row,this.col-1,newshape)) {
+				this.col-=1;
+				this.shape=newshape;
+			}
+			else if (this.try_change(this.row,this.col+1,newshape)) {
+				this.col+=1;
+				this.shape=newshape;
+			}
 		}
 	}
 
